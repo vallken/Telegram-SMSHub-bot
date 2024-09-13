@@ -45,14 +45,14 @@ src/
     cd Telegram-SMSHub-bot
     ```
 3. Install dependensi:
-    Dengan npm:
-    ```
-    npm install
-    ```
-    Dengan pnpm:
-    ```
-    pnpm install
-    ```
+    - Dengan `npm`:
+      ```
+      npm install
+      ```
+    - Dengan `pnpm`:
+      ```
+      pnpm install
+      ```
 4. Buat file `.env` di direktori root dan tambahkan variabel lingkungan Anda:
     ```
     TOKEN=YOUR_TELEGRAM_BOT_TOKEN
