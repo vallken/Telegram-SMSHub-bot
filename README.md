@@ -1,6 +1,3 @@
-
----
-
 # SMSHub Telegram Bot
 
 Bot Telegram ini memungkinkan Anda untuk berinteraksi dengan layanan SMSHub melalui berbagai perintah. Anda dapat memeriksa saldo, memesan nomor, membatalkan aksi, dan banyak lagi.
@@ -41,7 +38,7 @@ src/
 
 1. Clone repositori ini:
     ```
-    git clone https://github.com/username/repository.git
+    git clone https://github.com/vallken/Telegram-SMSHub-bot.git
     ```
 2. Masuk ke direktori proyek:
     ```
@@ -76,5 +73,3 @@ Distribusi dan penggunaan proyek ini diatur oleh lisensi yang berlaku. Untuk det
 ---
 
 Terima kasih telah menggunakan bot ini!
-
----
