@@ -63,7 +63,7 @@ src/
 
 1. Jalankan bot:
     ```
-    node src/index.js
+    node index.js
     ```
 2. Bot akan aktif dan mulai mendengarkan perintah di Telegram.
 
