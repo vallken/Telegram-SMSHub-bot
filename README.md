@@ -1,6 +1,3 @@
-
----
-
 # SMSHub Telegram Bot
 
 Bot Telegram ini memungkinkan Anda untuk berinteraksi dengan layanan SMSHub melalui berbagai perintah. Anda dapat memeriksa saldo, memesan nomor, membatalkan aksi, dan banyak lagi.
@@ -76,5 +73,3 @@ Distribusi dan penggunaan proyek ini diatur oleh lisensi yang berlaku. Untuk det
 ---
 
 Terima kasih telah menggunakan bot ini!
-
----
