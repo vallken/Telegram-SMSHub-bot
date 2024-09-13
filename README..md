@@ -1,4 +1,6 @@
-```markdown
+
+---
+
 # SMSHub Telegram Bot
 
 Bot Telegram ini memungkinkan Anda untuk berinteraksi dengan layanan SMSHub melalui berbagai perintah. Anda dapat memeriksa saldo, memesan nomor, membatalkan aksi, dan banyak lagi.
@@ -38,19 +40,19 @@ src/
 ## Instalasi
 
 1. Clone repositori ini:
-    ```bash
-    git clone https://github.com/vallken/Telegram-SMSHub-bot.git
+    ```
+    git clone https://github.com/username/repository.git
     ```
 2. Masuk ke direktori proyek:
-    ```bash
+    ```
     cd repository
     ```
 3. Install dependensi:
-    ```bash
+    ```
     npm install
     ```
 4. Buat file `.env` di direktori root dan tambahkan variabel lingkungan Anda:
-    ```env
+    ```
     TOKEN=YOUR_TELEGRAM_BOT_TOKEN
     MONGODB_URI=YOUR_MONGODB_URI
     ```
@@ -58,7 +60,7 @@ src/
 ## Penggunaan
 
 1. Jalankan bot:
-    ```bash
+    ```
     node src/index.js
     ```
 2. Bot akan aktif dan mulai mendengarkan perintah di Telegram.
@@ -74,4 +76,5 @@ Distribusi dan penggunaan proyek ini diatur oleh lisensi yang berlaku. Untuk det
 ---
 
 Terima kasih telah menggunakan bot ini!
-```
+
+---
