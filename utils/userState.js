@@ -1,3 +1,5 @@
+import {checkApi} from "./mongo.js"
+
 const userState = {};
 
 export const resetUserState = (userId) => {
@@ -9,7 +11,7 @@ export const isUserOrdering = (userId) => userState[userId]?.isGetNumber;
 export const promptUser = (ctx, userId, state, message) => {
   resetUserState(userId);
   userState[userId] = state;
-  ctx.reply(message);
+  ctx.reply(message);x
 };
 
 export const checkApiAndExecute = async (ctx, userId, callback) => {
