@@ -25,7 +25,7 @@ async function getBalance(userId) {
   
   const url = apiUrl('getBalance', { api_key: User.apiKey, currency: 840 });
   const data = await Fetching(url);
-  return data.includes("ACCESS_BALANCE") ? data.split(":")[1] : "Data tidak ditemukan atau format respons tidak sesuai";
+  return data.includes("ACCESS_BALANCE") ? data.split(":")[1] : "Invalid API Key";
 }
 
 async function getStatus(apiKey, ID) {
