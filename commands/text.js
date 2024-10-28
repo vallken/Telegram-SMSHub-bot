@@ -12,7 +12,6 @@ import {
   export default function(bot) {
     bot.on("text", async (ctx) => {
       const userId = ctx.from.id;
-      console.log(userState)
       const userStateData = userState[userId];
   
       if (userStateData?.isSettingApi) {
