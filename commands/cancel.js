@@ -1,5 +1,5 @@
 import { cancelAction } from "../utils/smshub.js";
-import { resetUserState } from "../utils/userState.js";
+import userState, { resetUserState } from "../utils/userState.js";
 
 export default function(bot) {
   bot.command("cancel", (ctx) => {

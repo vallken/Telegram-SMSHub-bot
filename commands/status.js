@@ -1,4 +1,5 @@
 import { getStatus } from "../utils/smshub.js";
+import userState from "../utils/userState.js";
 
 export default function(bot) {
   bot.command("status", (ctx) => {

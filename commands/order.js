@@ -1,5 +1,4 @@
-import { promptUser } from "../utils/userState.js";
-import { checkApi } from "../utils/mongo.js";
+import { promptUser, checkApiAndExecute } from "../utils/userState.js";
 
 export default function(bot) {
   bot.command("order", (ctx) =>
