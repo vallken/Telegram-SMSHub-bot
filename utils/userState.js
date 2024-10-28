@@ -11,7 +11,7 @@ export const isUserOrdering = (userId) => userState[userId]?.isGetNumber;
 export const promptUser = (ctx, userId, state, message) => {
   resetUserState(userId);
   userState[userId] = state;
-  ctx.reply(message);x
+  ctx.reply(message);
 };
 
 export const checkApiAndExecute = async (ctx, userId, callback) => {
