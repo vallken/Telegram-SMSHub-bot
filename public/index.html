@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <style>
+        body, html {
+          margin: 0;
+          padding: 0;
+          overflow: hidden;
+          background: #000;
+        }
+        #canvas-container {
+          width: 100vw;
+          height: 100vh;
+        }
+      </style>
+      
+      <div id="canvas-container"></div>
+      
+      <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdnjs.cloudflare.com/ajax/libs/three.js/0.162.0/three.module.min.js",
+          "OrbitControls": "https://unpkg.com/three@0.162.0/examples/jsm/controls/OrbitControls.js"
+        }
+      }
+      </script>
+      
+      <script type="module">
+      import * as THREE from 'three';
+      import { OrbitControls } from 'OrbitControls';
+      
+      let scene, camera, renderer, vortex, controls;
+      let particles, particleSystem;
+      let time = 0;
+      let mouse = new THREE.Vector2();
+      let mouseVelocity = new THREE.Vector2();
+      let lastMousePos = new THREE.Vector2();
+      let audioContext, analyser;
+      let forceField = [];
+      
+      function initScene() {
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x000000, 1);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+      
+        camera.position.set(30, 20, 50);
+        camera.lookAt(0, 0, 0);
+      
+        controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.screenSpacePanning = false;
+        controls.minDistance = 20;
+        controls.maxDistance = 150;
+        controls.enableRotate = true;
+      
+        vortex = new THREE.Group();
+        scene.add(vortex);
+      
+        for (let i = 0; i < 10; i++) {
+          forceField.push({
+            position: new THREE.Vector3(
+              (Math.random() - 0.5) * 40,
+              (Math.random() - 0.5) * 40,
+              (Math.random() - 0.5) * 40
+            ),
+            strength: Math.random() * 2 + 1,
+            frequency: Math.random() * 2 + 1
+          });
+        }
+      }
+      
+      function createVortex() {
+        const particleCount = 200000;
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+        const colors = new Float32Array(particleCount * 3);
+        const sizes = new Float32Array(particleCount);
+        const ringIndices = new Float32Array(particleCount);
+        const particleTypes = new Float32Array(particleCount);
+      
+        const ringCount = 15;
+        const particlesPerRing = particleCount / ringCount;
+      
+        for (let i = 0; i < particleCount; i++) {
+          const ringIndex = Math.floor(i / particlesPerRing);
+          const particleType = Math.random() > 0.8 ? 1 : 0;
+      
+          const angle = (i % particlesPerRing) * (Math.PI * 2 / particlesPerRing);
+          const ringRadius = 15 + Math.sin(ringIndex * 0.5) * 5;
+          const heightSpacing = 40 / ringCount;
+          const height = (ringIndex - ringCount / 2) * heightSpacing;
+      
+          const spiralOffset = Math.sin(angle * 3) * (particleType ? 4 : 2);
+          const radiusVariation = Math.cos(ringIndex * 0.5) * 2;
+      
+          positions[i * 3] = (Math.cos(angle) * (ringRadius + radiusVariation)) + spiralOffset;
+          positions[i * 3 + 1] = height + Math.sin(angle * 2) * (particleType ? 2 : 1);
+          positions[i * 3 + 2] = (Math.sin(angle) * (ringRadius + radiusVariation)) + spiralOffset;
+      
+          const baseHue = (ringIndex / ringCount) * 0.8;
+          const hueVariation = Math.sin(angle * 3) * 0.1;
+          const hue = (baseHue + hueVariation) % 1;
+          const saturation = particleType ? 1 : 0.8;
+          const lightness = particleType ? 0.6 : 0.4;
+      
+          const color = new THREE.Color().setHSL(hue, saturation, lightness);
+          colors[i * 3] = color.r;
+          colors[i * 3 + 1] = color.g;
+          colors[i * 3 + 2] = color.b;
+      
+          sizes[i] = particleType ? 2.5 : 1.5;
+          ringIndices[i] = ringIndex;
+          particleTypes[i] = particleType;
+        }
+      
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+        geometry.setAttribute('ringIndex', new THREE.BufferAttribute(ringIndices, 1));
+        geometry.setAttribute('particleType', new THREE.BufferAttribute(particleTypes, 1));
+      
+        const material = new THREE.ShaderMaterial({
+          uniforms: {
+            time: { value: 0 },
+            mouse: { value: new THREE.Vector2() },
+            mouseVelocity: { value: new THREE.Vector2() }
+          },
+          vertexShader: `
+            uniform float time;
+            uniform vec2 mouse;
+            uniform vec2 mouseVelocity;
+            attribute float size;
+            attribute float ringIndex;
+            attribute float particleType;
+            attribute vec3 color;
+            varying vec3 vColor;
+            varying float vParticleType;
+            float noise(vec3 p) {
+              return fract(sin(dot(p, vec3(12.9898, 78.233, 45.5432))) * 43758.5453);
+            }
+            void main() {
+              vColor = color;
+              vParticleType = particleType;
+              vec3 pos = position;
+              float angle = atan(pos.x, pos.z);
+              float radius = length(pos.xz);
+              float ringOffset = ringIndex * 0.2;
+              float timeScale = time * (1.0 + particleType * 0.5);
+              float spiralFactor = (radius - timeScale * 5.0 + ringOffset) * 0.2;
+              float complexAngle = spiralFactor + angle + sin(time + ringIndex * 0.3) * 0.2;
+              float twist = sin(time * 0.5 + ringIndex * 0.5) * 0.5;
+              complexAngle += twist;
+              vec3 noisePos = pos * 0.05 + time * 0.1;
+              float displacement = noise(noisePos) * (particleType * 2.0);
+              pos.x = cos(complexAngle) * radius + displacement;
+              pos.z = sin(complexAngle) * radius + displacement;
+              pos.y += sin(time + noise(pos) * 5.0) * (particleType * 2.0);
+              vec2 mouseEffect = (mouse - vec2(pos.x, pos.y)) * 0.8;
+              float mouseDistance = length(mouseEffect);
+              float mouseInfluence = 1.0 - smoothstep(0.0, 15.0, mouseDistance);
+              mouseInfluence = mouseInfluence * mouseInfluence;
+              vec2 velocityEffect = mouseVelocity * 2.0;
+              pos.x += mouseEffect.x * mouseInfluence * 2.0 + velocityEffect.x * mouseInfluence;
+              pos.y += mouseEffect.y * mouseInfluence * 2.0 + velocityEffect.y * mouseInfluence;
+              vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+              float sizeVariation = 1.0 + sin(time * 2.0 + ringIndex * 0.5) * 0.3;
+              float distanceFactor = 50.0 / length(mvPosition.xyz);
+              gl_PointSize = size * distanceFactor * (1.0 + mouseInfluence * 2.0) * sizeVariation;
+              gl_Position = projectionMatrix * mvPosition;
+            }
+          `,
+          fragmentShader: `
+            varying vec3 vColor;
+            varying float vParticleType;
+            void main() {
+              vec2 center = gl_PointCoord - vec2(0.5);
+              float dist = length(center);
+              float alpha = vParticleType > 0.5 ? 0.15 / (dist * 0.5 + 0.1) : 0.05 / (dist + 0.1);
+              vec3 finalColor = vColor * (1.0 + (1.0 - dist) * 0.2);
+              gl_FragColor = vec4(finalColor, alpha);
+            }
+          `,
+          blending: THREE.AdditiveBlending,
+          depthTest: false,
+          transparent: true,
+        });
+      
+        particleSystem = new THREE.Points(geometry, material);
+        vortex.add(particleSystem);
+      }
+      
+      function animateVortex() {
+        time += 0.01;
+        mouseVelocity.x = mouse.x - lastMousePos.x;
+        mouseVelocity.y = mouse.y - lastMousePos.y;
+        lastMousePos.copy(mouse);
+        mouseVelocity.multiplyScalar(0.95);
+        particleSystem.material.uniforms.time.value = time;
+        particleSystem.material.uniforms.mouse.value = mouse;
+        particleSystem.material.uniforms.mouseVelocity.value = mouseVelocity;
+        vortex.rotation.y += 0.001 * (1.0 + Math.sin(time * 0.2) * 0.2);
+        controls.update();
+      }
+      
+      function animate() {
+        requestAnimationFrame(animate);
+        animateVortex();
+        renderer.render(scene, camera);
+      }
+      
+      function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      }
+      
+      function onMouseMove(event) {
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+      }
+      
+      function init() {
+        initScene();
+        createVortex();
+        window.addEventListener('resize', onWindowResize, false);
+        window.addEventListener('mousemove', onMouseMove, false);
+        animate();
+      }
+      
+      init();
+      </script>
+      
+</body>
+</html>
